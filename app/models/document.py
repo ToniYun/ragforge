@@ -22,6 +22,25 @@ class Document(Base):
         nullable=False
     )
     
+    original_filename: Mapped[str] = mapped_column(
+        String(255),
+        nullable=True
+    )
+    
+    file_type: Mapped[str] = mapped_column(
+        String(100),
+        nullable=True
+    )
+    
+    file_size: Mapped[int] = mapped_column(
+        nullable=True
+    )
+    
+    storage_path: Mapped[str] = mapped_column(
+        String(500),
+        nullable=True
+    )
+    
     status: Mapped[str] = mapped_column(
         String(50),
         nullable=False,
@@ -33,5 +52,4 @@ class Document(Base):
         nullable=False,
         default=datetime.utcnow
     )
-    
-    
+ 
