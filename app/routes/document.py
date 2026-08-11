@@ -1,24 +1,72 @@
 import uuid
+from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException, status, APIRouter
+from fastapi import Depends, File, FastAPI, HTTPException, status, APIRouter, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.loaders.pdf_loader import load_pdf, PDFLoadError
 from app.models import Document, Jobs
-from app.schemas import DocumentCreate, DocumentResponse, JobCreate, JobResponse
+from app.schemas import DocumentResponse, JobCreate, JobResponse
 
 router = APIRouter(
     prefix="/documents",
     tags=["documents"],    
 )
 
+UPLOAD_DIR = Path("uploads")
+UPLOAD_DIR.mkdir(exist_ok=True)
+
 @router.post("", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
-def create_document(document: DocumentCreate, db: Session = Depends(get_db)):
-    new_document = Document(filename=document.filename)
+def create_document(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    if file.content_type not in ["application/pdf"]:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid file type. Only PDF files are allowed.")
+    
+    
+    new_document = Document(
+        filename=file.filename or "unnamed.pdf",
+        status="UPLOADED",
+        file_type=file.content_type,
+        file_size=len(file.file.read()),
+        storage_path=str(UPLOAD_DIR / f"{uuid.uuid4()}.pdf")
+    )
+    
     db.add(new_document)
-    db.commit()
-    db.refresh(new_document)
+    
+    db.flush()
+    
+    file_path = UPLOAD_DIR / f"{new_document.id}.pdf"
+    
+    try:
+        with file_path.open("wb") as destination:
+            while chunk := file.file.read(1024 * 1024): 
+                destination.write(chunk)
+        
+        pages = load_pdf(file_path)
+        
+        db.commit()
+        db.refresh(new_document)
+        
+        return new_document
+    except PDFLoadError as e:
+        new_document.status = "FAILED"
+        
+        db.commit()
+        db.refresh(new_document)
+          
+        return new_document
+    except Exception as e:
+        db.rollback()
+        
+        if file_path.exists():
+            file_path.unlink()
+        
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An error occurred while processing the document: {e}")
+    finally:
+        file.file.close()
+        
+        
     return new_document
 
 @router.get("", response_model=list[DocumentResponse])

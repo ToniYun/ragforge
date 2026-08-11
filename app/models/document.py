@@ -27,11 +27,6 @@ class Document(Base):
         nullable=False
     )
     
-    original_filename: Mapped[str] = mapped_column(
-        String(255),
-        nullable=True
-    )
-    
     file_type: Mapped[str] = mapped_column(
         String(100),
         nullable=True
