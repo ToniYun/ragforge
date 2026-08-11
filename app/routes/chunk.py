@@ -5,8 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Document, Jobs
-from app.schemas import DocumentCreate, DocumentResponse, JobCreate, JobResponse
+from app.models import Document
+from app.schemas import DocumentCreate, DocumentResponse
 
 router = APIRouter(
     prefix="/documents",
@@ -26,28 +26,6 @@ def get_documents(db: Session = Depends(get_db)):
     statement = select(Document).order_by(Document.created_at.desc())
     documents = db.scalars(statement).all()
     return documents
-
-@router.get("/{document_id}/jobs", response_model=list[JobResponse])
-def get_document_jobs(document_id: uuid.UUID, db: Session = Depends(get_db)):
-    statement = select(Jobs).where(Jobs.document_id == document_id).order_by(Jobs.created_at.desc())
-    jobs = db.scalars(statement).all()
-    return jobs
-
-@router.post("/{document_id}/jobs", response_model=JobResponse, status_code=status.HTTP_201_CREATED)
-def create_job_for_document(document_id: uuid.UUID, job: JobCreate, db: Session = Depends(get_db)):
-    # Check if the document exists
-    document = db.get(Document, document_id)
-    if document is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
-    
-    new_job = Jobs(
-        document_id=document_id,
-        status=job.status
-    )
-    db.add(new_job)
-    db.commit()
-    db.refresh(new_job)
-    return new_job
 
 @router.get("/{document_id}", response_model=DocumentResponse)
 def get_document(document_id: uuid.UUID, db: Session = Depends(get_db)):

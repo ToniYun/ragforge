@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, DateTime
+from sqlalchemy import ForeignKey, String, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -17,7 +17,7 @@ class Jobs(Base):
     )
     
     document_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        ForeignKey("documents.id", ondelete="CASCADE"),
         nullable=False
     )
     
