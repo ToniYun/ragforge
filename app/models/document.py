@@ -1,12 +1,17 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from sqlalchemy import String, DateTime
+from sqlalchemy import String, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
+if TYPE_CHECKING:
+    from app.models.chunk import Document_Chunks
 
 class Document(Base):
     __tablename__ = "documents"
@@ -53,3 +58,7 @@ class Document(Base):
         default=datetime.utcnow
     )
  
+    chunks: Mapped[list[Document_Chunks]] = relationship(
+        back_populates="document",
+        cascade="all, delete-orphan"
+    )

@@ -10,9 +10,13 @@ class DocumentCreate(BaseModel):
 class DocumentResponse(BaseModel):
     id: uuid.UUID
     filename: str
+    original_filename: str | None
+    file_type: str | None
+    file_size: int | None
+    storage_path: str | None
     status: str
     created_at: datetime
-    
+
     model_config = ConfigDict(
         from_attributes=True
     )
