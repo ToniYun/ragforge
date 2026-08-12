@@ -29,7 +29,7 @@ def test_upload_pdf(client):
     assert response.status_code == 201
     data = response.json()
     assert data["filename"] == "test.pdf"
-    assert data["status"] == "UPLOADED"
+    assert data["status"] == "READY"
     assert "id" in data
     
     
@@ -119,3 +119,29 @@ def test_delete_document_not_found(client):
     response = client.delete(f"/documents/{uuid4()}")
 
     assert response.status_code == 404
+    
+def test_corrupt_pdf_marks_failed(client):
+    response = client.post(
+        "/documents",
+        files={"file": ("bad.pdf", b"not a real pdf", "application/pdf")}
+    )
+    assert response.status_code == 201
+    assert response.json()["status"] == "FAILED"
+
+
+def test_upload_stores_correct_file_size(client):
+    pdf_bytes = create_valid_pdf()
+    response = client.post(
+        "/documents",
+        files={"file": ("test.pdf", pdf_bytes, "application/pdf")}
+    )
+    assert response.json()["file_size"] == len(pdf_bytes)
+
+
+def test_oversized_file_rejected(client):
+    big = b"%PDF-1.4\n" + b"0" * (21 * 1024 * 1024)
+    response = client.post(
+        "/documents",
+        files={"file": ("big.pdf", big, "application/pdf")}
+    )
+    assert response.status_code == 413

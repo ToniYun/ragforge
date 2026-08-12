@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String, DateTime, ForeignKey
+from sqlalchemy import String, DateTime, ForeignKey, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -40,7 +40,12 @@ class Document(Base):
         String(500),
         nullable=True
     )
-    
+
+    extracted_text: Mapped[list | None] = mapped_column(
+        JSON,
+        nullable=True
+    )
+
     status: Mapped[str] = mapped_column(
         String(50),
         nullable=False,
