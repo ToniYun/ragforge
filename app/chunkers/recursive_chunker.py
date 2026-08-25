@@ -24,7 +24,7 @@ class RecursiveChunker(BaseChunker):
  
     def __init__(
         self,
-        chunk_size: int = 600,
+        chunk_size: int = 256,
         chunk_overlap: int = 75,
         min_chunk_size: int = 100,
         separators: Sequence[str] | None = None,
