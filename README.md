@@ -62,7 +62,7 @@ app/
 ├── database.py                # SQLAlchemy engine/session setup
 ├── models/                    # ORM models: Document, Document_Chunks, Jobs
 ├── schemas/                   # Pydantic request/response models
-├── routes/                    # HTTP endpoints (documents, jobs, search)
+├── routes/                    # HTTP endpoints (documents, jobs, search, generation)
 ├── services/
 │   ├── ingestion_service.py    # Orchestrates extract → chunk → embed → store
 │   ├── retrieval_service.py    # Embeds a query and runs the similarity search
@@ -70,7 +70,10 @@ app/
 ├── loaders/
 │   └── pdf_loader.py          # PDF → per-page text (pypdf)
 ├── chunkers/
-│   └── recursive_chunker.py   # Text → overlapping token-bounded chunks
+│   ├── recursive_chunker.py   # Text → overlapping token-bounded chunks
+│   ├── base.py                 # Shared chunker interfaces/helpers
+│   ├── normalize.py            # Text normalization before chunking
+│   └── tokenizer.py            # Token counting helpers used by the chunker
 └── embeddings/
     └── embedding_service.py   # Text → vector (sentence-transformers)
 
@@ -92,6 +95,7 @@ uploads/                     # Saved PDF files (gitignored)
 | `POST` | `/search` | Semantic search — `{"query": "...", "top_k": 5, "document_id": "..."}` (`document_id` optional, scopes search to one document). Returns chunks ranked by similarity. |
 | `POST` | `/generate` | Full RAG — same request shape as `/search`, but sends the retrieved chunks to Ollama and returns `{"answer": "...", "citations": [...]}`. **Requires Ollama to be reachable** — see Setup. |
 | `GET`/`POST`/`DELETE` | `/jobs`, `/documents/{id}/jobs` | Basic job/status tracking records tied to a document. |
+| `GET` | `/health` | Health check — returns `{"status": "ok"}`. |
 
 ## Setup
 
