@@ -50,7 +50,7 @@ exact chunks it used
 | **Chunk sizing** | The chunker counts tokens with the *embedding model's own* tokenizer, so `chunk_size` is expressed in the same wordpiece unit the model truncates by. The budget is 254 — the model's 256-token limit less `[CLS]` and `[SEP]`. Any other unit (characters, tiktoken) drifts against the real limit by an amount that varies with the text, letting chunks pass the budget check and still get truncated at embed time. Falls back to a character estimate only if the model can't be loaded. |
 | **[Ollama](https://ollama.com)** | Runs the LLM that actually generates answers in `POST /generate`. **Not a Python package** — a separate application you (or someone on your network) must have installed and running, with at least one model pulled. RAGForge talks to it over plain HTTP (`OLLAMA_URL`), not an SDK. |
 | **httpx** | The HTTP client used to call Ollama's REST API from `generation_service.py`. |
-| **pytest** | Test suite — 50 tests across document upload, ingestion/chunking, retrieval, search, and generation. |
+| **pytest** | Test suite — 252 tests. 108 cover document upload, ingestion/chunking, retrieval, search, and generation; the other 144 are specs written ahead of the code and skip until the module they describe exists (see [Pending specs](#pending-specs)). |
 | **psycopg** | The actual Postgres driver SQLAlchemy talks through. |
 
 ## Project structure
@@ -78,6 +78,12 @@ app/
     └── embedding_service.py   # Text → vector (sentence-transformers)
 
 migrations/                  # Alembic migration history
+scripts/
+├── label.py                 # Interactive labeling of which chunks answer each eval question
+├── eval_set.py              # Loads and strictly validates the eval set
+├── eval_set.json            # The labeled eval questions
+├── evaluate.py              # Scores a retrieval mode against the labels
+└── eval_metrics.py          # recall@k, MRR, hit rate
 tests/                       # pytest suite
 uploads/                     # Saved PDF files (gitignored)
 ```
@@ -160,6 +166,8 @@ uvicorn app.main:app --reload
 ```bash
 pytest
 ```
+
+Currently **108 pass and 144 skip** — the skips are the pending specs described below, not failures.
 
 The suite is fully self-contained — document/job tests run against an in-memory SQLite database, and the ingestion/retrieval/search/generation tests either exercise the real embedding model directly or mock the database layer and the Ollama HTTP call, so `pytest` needs no live Postgres connection and no running Ollama server to pass.
 
