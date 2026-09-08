@@ -1,0 +1,110 @@
+[
+  {
+    "query": "What problem with sparse retrieval motivated this work?",
+    "kind": "paraphrase",
+    "relevant_chunk_ids": [],
+    "note": "The paper won't use the phrase 'sparse retrieval problem' verbatim. Pure semantic match."
+  },
+  {
+    "query": "How are the passage and question encoders trained?",
+    "kind": "paraphrase",
+    "relevant_chunk_ids": [],
+    "note": "Tests whether embeddings connect 'trained' to the loss/objective section."
+  },
+  {
+    "query": "Why does splitting documents into passages help retrieval?",
+    "kind": "paraphrase",
+    "relevant_chunk_ids": [],
+    "note": "Chunking rationale, likely worded very differently in the paper."
+  },
+  {
+    "query": "What makes a negative example hard to learn from?",
+    "kind": "paraphrase",
+    "relevant_chunk_ids": [],
+    "note": "Should land on the in-batch / hard negatives discussion."
+  },
+  {
+    "query": "How well does the system do compared to the older keyword baseline?",
+    "kind": "paraphrase",
+    "relevant_chunk_ids": [],
+    "note": "Deliberately avoids the token 'BM25' so only the vector arm can find it."
+  },
+  {
+    "query": "BM25",
+    "kind": "exact",
+    "relevant_chunk_ids": [],
+    "note": "Single rare token. Vector search dilutes this; keyword search nails it."
+  },
+  {
+    "query": "Natural Questions dataset",
+    "kind": "exact",
+    "relevant_chunk_ids": [],
+    "note": "Named entity. Watch how much rank improves once keyword search lands."
+  },
+  {
+    "query": "top-20 passage retrieval accuracy",
+    "kind": "exact",
+    "relevant_chunk_ids": [],
+    "note": "Exact metric name from the results tables."
+  },
+  {
+    "query": "in-batch negatives",
+    "kind": "exact",
+    "relevant_chunk_ids": [],
+    "note": "Technical term of art; embeddings often blur this into generic 'training'."
+  },
+  {
+    "query": "FAISS",
+    "kind": "exact",
+    "relevant_chunk_ids": [],
+    "note": "Library name mentioned only in passing. Classic keyword-search win."
+  },
+  {
+    "query": "TriviaQA",
+    "kind": "exact",
+    "relevant_chunk_ids": [],
+    "note": "Dataset name appearing mostly inside tables."
+  },
+  {
+    "query": "How does the retriever's training setup explain its accuracy gain over BM25?",
+    "kind": "multihop",
+    "relevant_chunk_ids": [],
+    "note": "Needs the method section AND the results section. Single-shot retrieval usually gets one."
+  },
+  {
+    "query": "Which datasets were used for evaluation and what score did the model reach on each?",
+    "kind": "multihop",
+    "relevant_chunk_ids": [],
+    "note": "Spans the dataset description and the results tables."
+  },
+  {
+    "query": "What are the limitations of the approach and how do the authors suggest addressing them?",
+    "kind": "multihop",
+    "relevant_chunk_ids": [],
+    "note": "Discussion plus future work. Rewards the agent loop in Step 8."
+  },
+  {
+    "query": "How does the end-to-end QA accuracy relate to the retrieval accuracy reported earlier?",
+    "kind": "multihop",
+    "relevant_chunk_ids": [],
+    "note": "Two different results sections must both be retrieved."
+  },
+  {
+    "query": "What is the airspeed velocity of an unladen swallow?",
+    "kind": "unanswerable",
+    "relevant_chunk_ids": [],
+    "note": "Obviously absent. The system must abstain, not confabulate."
+  },
+  {
+    "query": "What was the company's Q3 2026 revenue?",
+    "kind": "unanswerable",
+    "relevant_chunk_ids": [],
+    "note": "Plausible-sounding but absent. Harder abstention case than the silly one."
+  },
+  {
+    "query": "How do I configure the retry timeout for the ingestion worker?",
+    "kind": "unanswerable",
+    "relevant_chunk_ids": [],
+    "note": "Sounds like it could be in a technical corpus. Tests over-eager retrieval."
+  }
+]

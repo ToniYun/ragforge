@@ -1,6 +1,6 @@
 from .base import BaseChunker, Chunk, Page
 from .normalize import normalize_page, normalize_pages
-from .recursive_chunker import RecursiveChunker
+from .recursive_chunker import RecursiveChunker, chunk_pages
 from .tokenizer import get_token_counter
 
 __all__ = [
@@ -8,7 +8,8 @@ __all__ = [
     "Chunk",
     "Page",
     "RecursiveChunker",
+    "chunk_pages",
     "get_token_counter",
-    "normlize_page",
-    "normlize_pages",    
+    "normalize_page",
+    "normalize_pages",
 ]

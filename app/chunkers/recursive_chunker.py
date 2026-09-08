@@ -4,6 +4,8 @@ import re
 from dataclasses import dataclass
 from typing import Any, Callable, Sequence
  
+from app.embeddings import MAX_CONTENT_TOKENS
+
 from .base import BaseChunker, Chunk, Page, make_chunk_id, utcnow
 from .normalize import normalize_pages
 from .tokenizer import get_token_counter
@@ -24,11 +26,10 @@ class RecursiveChunker(BaseChunker):
  
     def __init__(
         self,
-        chunk_size: int = 256,
+        chunk_size: int = MAX_CONTENT_TOKENS,
         chunk_overlap: int = 75,
         min_chunk_size: int = 100,
         separators: Sequence[str] | None = None,
-        encoding_name: str = "cl100k_base",
         length_fn: Callable[[str], int] | None = None,
     ) -> None:
         if not 0 <= chunk_overlap < chunk_size:
@@ -37,7 +38,9 @@ class RecursiveChunker(BaseChunker):
         self.chunk_overlap = chunk_overlap
         self.min_chunk_size = min_chunk_size
         self.separators = list(separators) if separators else list(DEFAULT_SEPARATORS)
-        self._len = length_fn or get_token_counter(encoding_name)
+        # Defaults to the embedding model's own wordpiece counter, so chunk_size
+        # is expressed in the same unit the model truncates by.
+        self._len = length_fn or get_token_counter()
  
     # ---------- entry points ----------
  
@@ -169,6 +172,13 @@ class RecursiveChunker(BaseChunker):
             if current and total + fragment.tokens > self.chunk_size:
                 groups.append(current)
                 current, total = self._overlap_tail(current)
+                # The overlap tail is seeded before this fragment is added, so
+                # tail + fragment can still blow the budget -- up to
+                # chunk_overlap + chunk_size in the worst case. Drop the tail
+                # rather than emit a chunk the model would truncate; _split
+                # guarantees a lone fragment always fits.
+                if current and total + fragment.tokens > self.chunk_size:
+                    current, total = [], 0
             current.append(fragment)
             total += fragment.tokens
  
@@ -201,7 +211,15 @@ class RecursiveChunker(BaseChunker):
             return groups
         previous = groups[-2]
         seen = {(f.start, f.text) for f in previous}
-        previous.extend(f for f in groups[-1] if (f.start, f.text) not in seen)
+        additions = [f for f in groups[-1] if (f.start, f.text) not in seen]
+
+        # Folding must not push the neighbour past the budget. A slightly short
+        # final chunk is better than one the model silently truncates.
+        combined = sum(f.tokens for f in previous) + sum(f.tokens for f in additions)
+        if combined > self.chunk_size:
+            return groups
+
+        previous.extend(additions)
         return groups[:-1]
 
 
